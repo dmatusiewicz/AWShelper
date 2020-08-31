@@ -1,57 +1,80 @@
 package config
 
 import (
-	"fmt"
 	"os"
 
-	flag "github.com/spf13/pflag"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 )
 
-var stsFS, roleFS *flag.FlagSet
+var configFileName, configFileType = "AWShelper.yaml", "yaml"
 
-// Load Parsing flags and loading config files.
-func Load() {
-
-	createFlagSets()
-	// importFlags()
-	// loadConfigFiles()
-
-	fmt.Printf("%s\n", viper.Get("role"))
-	fmt.Printf("%s\n", viper.Get("list"))
-	fmt.Printf("%s\n", viper.Get("sts"))
-
+// Configuration structure that holds entire app configuration.
+type Configuration struct {
+	AppConfig  *viper.Viper
+	AwsSession *session.Session
+	MfaSerial  []*iam.MFADevice
 }
 
-func createFlagSets() {
+// Conf global configuration
+var Conf Configuration
 
-	switch os.Args[1] {
-	case "sts":
-		{
-			stsFS = flag.NewFlagSet("sts", 1)
-			stsFS.Parse(os.Args[2:])
-			viper.BindPFlags(stsFS)
-		}
-	case "role":
-		{
-			roleFS = flag.NewFlagSet("role", 1)
-			roleFS.StringP("role", "r", "", "Role to be assumed.")
-			roleFS.BoolP("list", "l", false, "Attempt to list roles.")
-			roleFS.Parse(os.Args[2:])
-			viper.BindPFlags(roleFS)
-		}
-	}
+// Load configuration from files and environment variables.
+func Load() Configuration {
+
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+
+	Conf.AppConfig = configFiles()
+	Conf.AwsSession, Conf.MfaSerial = awsSession()
+	zerolog.SetGlobalLevel(zerolog.Level(Conf.AppConfig.GetInt("logLevel")))
+
+	return Conf
 }
 
-func loadConfigFiles() error {
+func configFiles() *viper.Viper {
 	viper.AddConfigPath("/etc/.AWShelper/")
 	viper.AddConfigPath("$HOME/.AWShelper")
 	viper.AddConfigPath(".")
-	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
+	viper.SetConfigName(configFileName)
+	viper.AutomaticEnv()
+	viper.Set("configFileName", configFileName)
+	viper.Set("configFileType", configFileType)
 	err := viper.ReadInConfig()
 	if err != nil {
-		return err
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			log.Warn().Err(err).Msg("Run './<app_name> configure' subcommand")
+		} else {
+			log.Fatal().Err(err).Msg("Failed to load config file. Please run $ AWShelper configure")
+		}
 	}
-	return nil
+	return viper.GetViper()
+}
+
+func awsSession() (*session.Session, []*iam.MFADevice) {
+	awsConfig := aws.NewConfig()
+	r := Conf.AppConfig.GetString("region")
+	awsConfig.Region = &r
+	awsConfig.STSRegionalEndpoint = 2
+	b := true
+	awsConfig.CredentialsChainVerboseErrors = &b
+
+	awsOptions := &session.Options{
+		Config:  *awsConfig,
+		Profile: Conf.AppConfig.GetString("AWS_PROFILE"),
+	}
+
+	sess := session.Must(session.NewSessionWithOptions(*awsOptions))
+
+	svc := iam.New(sess)
+	output, err := svc.ListMFADevices(&iam.ListMFADevicesInput{})
+	if err != nil {
+		// if _,ok := err.(iam.No)
+		log.Fatal().Err(err).Msg("Failied to list MFA devices. Make surre that you have set AWS_PROFILE variable or your 'default' profile works.")
+	}
+	return sess, output.MFADevices
 }

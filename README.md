@@ -1,9 +1,12 @@
-# Dryconf 
+# AWShelper 
 # Problem statement.
 
-Program compose yaml structure from a given configuration (hierarchy) and data. 
+Helper for exporting assumed role redentials. 
+
 
 ## Examples
+
+
 
 ### Hierarchy
 ```
