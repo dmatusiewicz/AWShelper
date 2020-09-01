@@ -1,8 +1,6 @@
 package commands
 
 import (
-	"os"
-
 	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
@@ -39,7 +37,7 @@ func role(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	user := os.Getenv("USER")
+	user := "User"
 	svc := sts.New(cfg.AwsSession)
 	mfaCode := cfg.AppConfig.GetString("mfa")
 	if mfaCode == "" {
