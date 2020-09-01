@@ -3,28 +3,6 @@
 
 Helper for exporting assumed role redentials. 
 
+### Usage
 
-
-### Hierarchy
-```
----
-hierarchy:
-  - name: Task specific configuration
-    path: tasks/%{ENVIRONMENT}/%{TASK}.yaml
-  - name: Env specific configuraiton
-    path: environments/%{ENVIRONMENT}.yaml
-  - name: Global configuration
-    path: global.yaml
-
-data: data/sample
-```
-
-### Data
-
-*data/sample/tasks/production/task1.yaml*
-```
-key1: val1 
-list1: 
-
-
-
+If you dont want too build if just use the binnary in main directory: ./AWShelper
