@@ -4,9 +4,6 @@
 Helper for exporting assumed role redentials. 
 
 
-## Examples
-
-
 
 ### Hierarchy
 ```

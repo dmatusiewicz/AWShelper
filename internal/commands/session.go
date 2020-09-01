@@ -16,15 +16,20 @@ var sessionCmd = &cobra.Command{
 }
 
 func init() {
+	sessionCmd.PersistentFlags().StringP("role", "r", "", "IAM Role to be assumed.")
+	cfg.AppConfig.BindPFlag("role", sessionCmd.PersistentFlags().Lookup("role"))
+
 	rootCmd.AddCommand(sessionCmd)
 }
 
 func session(cmd *cobra.Command, args []string) {
+
 	svc := sts.New(cfg.AwsSession)
 	mfaCode := cfg.AppConfig.GetString("mfa")
 	if mfaCode == "" {
 		log.Info().Msg("--mfa / -m is not set. Get session operation might fail.")
 	}
+	if 
 	gsto, err := svc.GetSessionToken(&sts.GetSessionTokenInput{
 		SerialNumber: cfg.MfaSerial[0].SerialNumber,
 		TokenCode:    &mfaCode,
