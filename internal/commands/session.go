@@ -29,7 +29,7 @@ func session(cmd *cobra.Command, args []string) {
 	if mfaCode == "" {
 		log.Info().Msg("--mfa / -m is not set. Get session operation might fail.")
 	}
-	if 
+	// if sessioon
 	gsto, err := svc.GetSessionToken(&sts.GetSessionTokenInput{
 		SerialNumber: cfg.MfaSerial[0].SerialNumber,
 		TokenCode:    &mfaCode,
