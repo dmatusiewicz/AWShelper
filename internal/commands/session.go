@@ -16,8 +16,8 @@ var sessionCmd = &cobra.Command{
 }
 
 func init() {
-	sessionCmd.PersistentFlags().StringP("role", "r", "", "IAM Role to be assumed.")
-	cfg.AppConfig.BindPFlag("role", sessionCmd.PersistentFlags().Lookup("role"))
+	// sessionCmd.PersistentFlags().StringP("role", "r", "", "IAM Role to be assumed.")
+	// cfg.AppConfig.BindPFlag("role", sessionCmd.PersistentFlags().Lookup("role"))
 
 	rootCmd.AddCommand(sessionCmd)
 }
