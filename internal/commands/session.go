@@ -3,6 +3,7 @@ package commands
 import (
 	log "github.com/rs/zerolog/log"
 
+	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/spf13/cobra"
 )
@@ -29,7 +30,14 @@ func session(cmd *cobra.Command, args []string) {
 	if mfaCode == "" {
 		log.Info().Msg("--mfa / -m is not set. Get session operation might fail.")
 	}
-	// if sessioon
+	if len(cfg.MfaSerial) == 0 {
+		log.Info().Msg("Loading MFA devlice serial from configuration: " + cfg.AppConfig.GetString("mfaDeviceSerial"))
+		mfaDeviceSerial := cfg.AppConfig.GetString("mfaDeviceSerial")
+		mfaDeviceSerialObject := &iam.MFADevice{
+			SerialNumber: &mfaDeviceSerial,
+		}
+		cfg.MfaSerial = append(cfg.MfaSerial, mfaDeviceSerialObject)
+	}
 	gsto, err := svc.GetSessionToken(&sts.GetSessionTokenInput{
 		SerialNumber: cfg.MfaSerial[0].SerialNumber,
 		TokenCode:    &mfaCode,

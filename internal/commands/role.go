@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
@@ -23,9 +24,6 @@ func init() {
 
 func role(cmd *cobra.Command, args []string) {
 
-	// fmt.Println(cfg.AppConfig.Get("roles"))
-	// fmt.Println(cfg.AppConfig.GetString("role"))
-	// fmt.Println(cfg.AppConfig.Get("roles." + cfg.AppConfig.GetString("role")))
 	if cfg.AppConfig.GetString("role") == "" {
 		log.Fatal().Msg("--role / -r  has not been set.")
 	} else {
@@ -43,6 +41,15 @@ func role(cmd *cobra.Command, args []string) {
 	if mfaCode == "" {
 		log.Warn().Msg("--mfa / -m is not set. Get session operation might fail.")
 	}
+	if len(cfg.MfaSerial) == 0 {
+		log.Info().Msg("Loading MFA devlice serial from configuration: " + cfg.AppConfig.GetString("mfaDeviceSerial"))
+		mfaDeviceSerial := cfg.AppConfig.GetString("mfaDeviceSerial")
+		mfaDeviceSerialObject := &iam.MFADevice{
+			SerialNumber: &mfaDeviceSerial,
+		}
+		cfg.MfaSerial = append(cfg.MfaSerial, mfaDeviceSerialObject)
+	}
+
 	gsto, err := svc.AssumeRole(&sts.AssumeRoleInput{
 		SerialNumber:    cfg.MfaSerial[0].SerialNumber,
 		TokenCode:       &mfaCode,

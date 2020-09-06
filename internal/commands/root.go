@@ -23,15 +23,18 @@ var SessionCredentials *sts.Credentials
 // Run start of the program
 func Run() {
 	rootCmd.PersistentFlags().BoolP("debug", "d", false, "Enable debug level of logging.")
-	rootCmd.PersistentFlags().StringP("mfa", "m", "", "MFA Code")
+	rootCmd.PersistentFlags().StringP("mfa", "m", "", "MFA code.")
+	rootCmd.PersistentFlags().StringP("mfaDeviceSerial", "e", "", "MFA device serial number.")
 	cfg.AppConfig.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug"))
 	cfg.AppConfig.BindPFlag("mfa", rootCmd.PersistentFlags().Lookup("mfa"))
+	cfg.AppConfig.BindPFlag("mfaDeviceSerial", rootCmd.PersistentFlags().Lookup("mfaDeviceSerial"))
+
 	rootCmd.Execute()
 	printOutput()
-
 }
 
 func root(cmd *cobra.Command, args []string) {
+
 	fmt.Print(cmd.UsageString())
 }
 

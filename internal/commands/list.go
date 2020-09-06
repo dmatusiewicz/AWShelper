@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/spf13/cobra"
 )
@@ -20,8 +21,16 @@ func init() {
 func list(cmd *cobra.Command, args []string) {
 
 	if cfg.AppConfig.Get("roles") != "" {
-		for i, o := range cfg.AppConfig.GetStringMap("roles") {
-			fmt.Printf("%s %s\n", i, o)
+		roleMap := cfg.AppConfig.GetStringMap("roles")
+		var sortedRoles []string
+		for k := range roleMap {
+			sortedRoles = append(sortedRoles, k)
+		}
+		sort.Strings(sortedRoles)
+
+		for _, v := range sortedRoles {
+
+			fmt.Printf("\t- [ %s ]\t%s\n", v, roleMap[v])
 		}
 	}
 }

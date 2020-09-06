@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/rs/zerolog"
@@ -29,8 +30,8 @@ func Load() Configuration {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 
 	Conf.AppConfig = configFiles()
-	Conf.AwsSession, Conf.MfaSerial = awsSession()
 	zerolog.SetGlobalLevel(zerolog.Level(Conf.AppConfig.GetInt("logLevel")))
+	Conf.AwsSession, Conf.MfaSerial = awsSession()
 
 	return Conf
 }
@@ -47,15 +48,17 @@ func configFiles() *viper.Viper {
 	err := viper.ReadInConfig()
 	if err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			log.Warn().Err(err).Msg("Run './<app_name> configure' subcommand")
+			log.Warn().Err(err).Msg("Run './AWShelper> configure' subcommand")
 		} else {
 			log.Fatal().Err(err).Msg("Failed to load config file. Please run $ AWShelper configure")
 		}
 	}
+
 	return viper.GetViper()
 }
 
 func awsSession() (*session.Session, []*iam.MFADevice) {
+
 	awsConfig := aws.NewConfig()
 	r := Conf.AppConfig.GetString("region")
 	awsConfig.Region = &r
@@ -69,12 +72,17 @@ func awsSession() (*session.Session, []*iam.MFADevice) {
 	}
 
 	sess := session.Must(session.NewSessionWithOptions(*awsOptions))
-
 	svc := iam.New(sess)
 	output, err := svc.ListMFADevices(&iam.ListMFADevicesInput{})
+
 	if err != nil {
-		// if _,ok := err.(iam.No)
+		if e, ok := err.(awserr.RequestFailure); ok {
+			log.Info().Err(e).Msg("Failed to fetch MFA devices. Please provide it via flag -e / --mfaDeviceSerial or configuration file. In order to disable this message in each run - set logLevel to '2' in configuration file.")
+			var mfaDevicesList []*iam.MFADevice
+			return sess, mfaDevicesList
+		}
 		log.Fatal().Err(err).Msg("Failied to list MFA devices. Make surre that you have set AWS_PROFILE variable or your 'default' profile works.")
 	}
+
 	return sess, output.MFADevices
 }
