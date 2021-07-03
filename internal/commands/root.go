@@ -34,7 +34,6 @@ func Run() {
 }
 
 func root(cmd *cobra.Command, args []string) {
-
 	fmt.Print(cmd.UsageString())
 }
 

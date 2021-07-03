@@ -48,7 +48,7 @@ func configFiles() *viper.Viper {
 	err := viper.ReadInConfig()
 	if err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			log.Warn().Err(err).Msg("Run './AWShelper> configure' subcommand")
+			log.Warn().Err(err).Msg("Run 'AWShelper configure' subcommand")
 		} else {
 			log.Fatal().Err(err).Msg("Failed to load config file. Please run $ AWShelper configure")
 		}

@@ -1,8 +1,8 @@
 # AWShelper 
-# Problem statement.
 
-Helper for exporting assumed role redentials. 
+Helper for getting mfa session or role. 
 
-### Usage
 
-If you dont want too build if just use the binnary in main directory: ./AWShelper
+```
+eval $(AWShelper role -r admin -m 585176)
+eval $(AWShelper session -m 607976)
